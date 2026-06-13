@@ -23,10 +23,15 @@ public class Menu {
         button2.setPreferredSize(new Dimension(250, 60)); 
         button2.setFont(new Font("Arial", Font.BOLD, 20));
 
+        JButton button3 = new JButton("Konversi Suhu");
+        button3.setPreferredSize(new Dimension(250, 60)); 
+        button3.setFont(new Font("Arial", Font.BOLD, 20));
+
         JPanel buttonContainer = new JPanel();
-        buttonContainer.setLayout(new GridLayout(2, 1, 0, 20));
+        buttonContainer.setLayout(new GridLayout(3, 1, 0, 20));
         buttonContainer.add(button1);
         buttonContainer.add(button2);
+        buttonContainer.add(button3);
 
         JPanel topPanel = new JPanel();
         topPanel.setBorder(BorderFactory.createEmptyBorder(50, 0, 0, 0)); 
@@ -45,6 +50,13 @@ public class Menu {
         button2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new Credits(); 
+                frame.dispose(); 
+            }
+        });
+
+        button3.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new KonversiSuhu(); 
                 frame.dispose(); 
             }
         });

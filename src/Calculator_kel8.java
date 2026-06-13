@@ -4,7 +4,7 @@ import java.util.Arrays;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
-public class Calculator_kel8 {
+class Calculator_kel8 {
     int windowwidth = 860;
     int windowheight = 1040;
 
@@ -18,26 +18,25 @@ public class Calculator_kel8 {
         "7", "8", "9", "×", 
         "4", "5", "6", "-",
         "1", "2", "3", "+",
-        "0", ".", "√", "="
+        "0", ".", "MN", "="
     };
     String[] rightSymbols = {"÷", "×", "-", "+", "="};
     String[] topSymbols = {"AC", "+/-", "%"};
-
 
     JFrame frame = new JFrame("calculator_kel8");
     JLabel displayLabel = new JLabel();
     JPanel displayPanel = new JPanel();
     JPanel buttonsPanel = new JPanel();
 
-    String A = "0";
-    String operator = null;
-    String B = null;
+    // Sekarang kita hanya butuh satu variabel memori untuk seluruh layar
+    String expression = "0";
+    // Variabel penanda jika user baru saja menekan "="
+    boolean isCalculated = false; 
 
     Calculator_kel8() {
-        frame.setVisible(true);
         frame.setSize(windowwidth, windowheight);
         frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
+        frame.setResizable(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
@@ -63,6 +62,7 @@ public class Calculator_kel8 {
             button.setText(buttonValue);
             button.setFocusable(false);
             button.setBorder(new LineBorder(colorColdGray));
+            
             if (Arrays.asList(topSymbols).contains(buttonValue)) {
                 button.setBackground(colorFlint);
                 button.setForeground(Color.white);
@@ -75,89 +75,157 @@ public class Calculator_kel8 {
                 button.setBackground(colorColdGray);
                 button.setForeground(Color.white);
             }
+            
             buttonsPanel.add(button);
-             button.addActionListener(new ActionListener() {
+            
+            button.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    JButton button = (JButton) e.getSource();
-                    String buttonValue = button.getText();
-                    if (Arrays.asList(rightSymbols).contains(buttonValue)) {
-                        if (buttonValue == "=") {
-                            if (A != null) {
-                                B = displayLabel.getText();
-                                double numA = Double.parseDouble(A);
-                                double numB = Double.parseDouble(B);
+                    JButton btn = (JButton) e.getSource();
+                    String val = btn.getText();
+                    
+                    try {
+                        // 1. Jika menekan AC
+                        if (val.equals("AC")) {
+                            expression = "0";
+                            isCalculated = false;
+                        } 
+                        // 2. Jika menekan SAMA DENGAN (=)
+                        else if (val.equals("=")) {
+                            double result = eval(expression); // Panggil mesin hitung
+                            expression = removeZeroDecimal(result);
+                            isCalculated = true;
+                        } 
+                        // 3. Jika menekan OPERATOR (+ - × ÷)
+                        else if ("+-×÷".contains(val)) {
+                            isCalculated = false;
+                            char lastChar = expression.charAt(expression.length() - 1);
+                            
+                            // Mencegah error mengetik "++" atau "×÷"
+                            // Jika karakter terakhir adalah operator, ganti dengan operator baru
+                            if ("+-×÷".indexOf(lastChar) != -1) {
+                                expression = expression.substring(0, expression.length() - 1) + val;
+                            } else {
+                                expression += val;
+                            }
+                        } 
+                        else if (val.equals("MN")) {
+                            new Menu();
+                            frame.dispose();
+                            
 
-                                if (operator == "+") {
-                                    displayLabel.setText(removeZeroDecimal(numA+numB));
-                                }
-                                else if (operator == "-") {
-                                    displayLabel.setText(removeZeroDecimal(numA-numB));
-                                }
-                                else if (operator == "×") {
-                                    displayLabel.setText(removeZeroDecimal(numA*numB));
-                                }
-                                else if (operator == "÷") {
-                                    displayLabel.setText(removeZeroDecimal(numA/numB));
-                                }
-                                clearAll();
+                        }
+                        // 4. Jika menekan +/- (Hitung semua yang ada, lalu jadikan negatif)
+                        else if (val.equals("+/-")) {
+                            double result = eval(expression) * -1;
+                            expression = removeZeroDecimal(result);
+                            isCalculated = true;
+                        }
+                        // 5. Jika menekan % (Hitung semua yang ada, lalu bagi 100)
+                        else if (val.equals("%")) {
+                            double result = eval(expression) / 100;
+                            expression = removeZeroDecimal(result);
+                            isCalculated = true;
+                        }
+                        // 6. Jika mengetik ANGKA atau TITIK
+                        else {
+                            if (expression.equals("0") || isCalculated) {
+                                // Jika layar 0, atau baru selesai dihitung, timpa angka barunya
+                                if (val.equals(".")) expression = "0.";
+                                else expression = val;
+                                isCalculated = false;
+                            } else {
+                                // Jika sedang mengetik, sambung angkanya di belakang
+                                expression += val;
                             }
                         }
-                        else if ("+-×÷".contains(buttonValue)) {
-                            if (operator == null) {
-                                A = displayLabel.getText();
-                                displayLabel.setText("0");
-                                B = "0";
-                            }
-                            operator = buttonValue;
-                        }
-                    }
-                    else if (Arrays.asList(topSymbols).contains(buttonValue)) {
-                        if (buttonValue == "AC") {
-                            clearAll();
-                            displayLabel.setText("0");
-                        }
-                        else if (buttonValue == "+/-") {
-                            double numDisplay = Double.parseDouble(displayLabel.getText());
-                            numDisplay *= -1;
-                            displayLabel.setText(removeZeroDecimal(numDisplay));
-                        }
-                        else if (buttonValue == "%") {
-                            double numDisplay = Double.parseDouble(displayLabel.getText());
-                            numDisplay /= 100;
-                            displayLabel.setText(removeZeroDecimal(numDisplay));
-                        }
-                    }
-                    else { //digits or . 
-                        if (buttonValue == ".") {
-                            if (!displayLabel.getText().contains(buttonValue)) {
-                                displayLabel.setText(displayLabel.getText() + buttonValue);
-                            }
-                        }
-                        else if ("0123456789".contains(buttonValue)) {
-                            if (displayLabel.getText() == "0") {
-                                displayLabel.setText(buttonValue);
-                            }
-                            else {
-                                displayLabel.setText(displayLabel.getText() + buttonValue);
-                            }
-                        }
+                        
+                        // Selalu perbarui layar setiap kali tombol ditekan
+                        displayLabel.setText(expression);
+                        
+                    } catch (Exception ex) {
+                        // Jika pengguna mengetik rumus yang salah/tidak masuk akal
+                        displayLabel.setText("Error");
+                        expression = "0";
+                        isCalculated = true;
                     }
                 }
             });
-            frame.setVisible(true);
-        }
-    }
+        } 
+        frame.setVisible(true); 
+    } 
 
-    void clearAll() {
-        A = "0";
-        operator = null;
-        B = null;
-    }
-
+    // --- FUNGSI BANTUAN ESTETIKA ---
     String removeZeroDecimal(double numDisplay) {
         if (numDisplay % 1 == 0) {
             return Integer.toString((int) numDisplay);
         }
         return Double.toString(numDisplay);
+    }
+
+    // =========================================================================
+    // --- MESIN PARSER MATEMATIKA (EVALUATOR) ---
+    // Fungsi canggih ini membaca teks string dari kiri ke kanan, 
+    // membedakan mana angka dan mana operator, serta memprioritaskan perkalian & pembagian
+    // =========================================================================
+    double eval(final String str) {
+        return new Object() {
+            int pos = -1, ch;
+
+            void nextChar() {
+                ch = (++pos < str.length()) ? str.charAt(pos) : -1;
+            }
+
+            boolean eat(int charToEat) {
+                while (ch == ' ') nextChar();
+                if (ch == charToEat) {
+                    nextChar();
+                    return true;
+                }
+                return false;
+            }
+
+            double parse() {
+                nextChar();
+                double x = parseExpression();
+                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char)ch);
+                return x;
+            }
+
+            // Membaca Penjumlahan & Pengurangan
+            double parseExpression() {
+                double x = parseTerm();
+                for (;;) {
+                    if      (eat('+')) x += parseTerm(); 
+                    else if (eat('-')) x -= parseTerm(); 
+                    else return x;
+                }
+            }
+
+            // Membaca Perkalian & Pembagian (Dihitung lebih dulu)
+            double parseTerm() {
+                double x = parseFactor();
+                for (;;) {
+                    if      (eat('×')) x *= parseFactor(); 
+                    else if (eat('÷')) x /= parseFactor(); 
+                    else return x;
+                }
+            }
+
+            // Membaca Angka atau Tanda Negatif di depan angka
+            double parseFactor() {
+                if (eat('+')) return parseFactor(); 
+                if (eat('-')) return -parseFactor(); 
+
+                double x;
+                int startPos = this.pos;
+                if ((ch >= '0' && ch <= '9') || ch == '.') { 
+                    while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
+                    x = Double.parseDouble(str.substring(startPos, this.pos));
+                } else {
+                    throw new RuntimeException("Syntax Error");
+                }
+                return x;
+            }
+        }.parse();
     }
 }
