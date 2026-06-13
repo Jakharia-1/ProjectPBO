@@ -1,0 +1,4 @@
+# Mengabaikan folder hasil kompilasi
+bin/
+*.class
+*.jar
